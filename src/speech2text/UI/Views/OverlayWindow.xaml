@@ -98,9 +98,9 @@
                         <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Selector"/> <!-- Microphone -->
                         <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="Auto"/>                            <!-- History -->
-                        <ColumnDefinition Width="4"/>
                         <ColumnDefinition Width="Auto"/>                            <!-- Settings -->
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="Auto"/>                            <!-- History -->
                     </Grid.ColumnDefinitions>
 
                     <!-- Round record button -->
@@ -173,22 +173,22 @@
                                   DisplayMemberPath="Name"/>
                     </StackPanel>
 
-                    <!-- History icon button -->
-                    <Button Grid.Column="6"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            Command="{Binding OpenHistoryCommand}"
-                            ToolTip="History">
-                        <materialDesign:PackIcon Kind="History" Width="22" Height="22"/>
-                    </Button>
-
                     <!-- Settings icon button -->
-                    <Button Grid.Column="8"
+                    <Button Grid.Column="6"
                             VerticalAlignment="Center"
                             Style="{StaticResource MaterialDesignIconButton}"
                             Command="{Binding OpenSettingsCommand}"
                             ToolTip="Settings">
                         <materialDesign:PackIcon Kind="Cog" Width="22" Height="22"/>
+                    </Button>
+
+                    <!-- History icon button -->
+                    <Button Grid.Column="8"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            Command="{Binding OpenHistoryCommand}"
+                            ToolTip="History">
+                        <materialDesign:PackIcon Kind="History" Width="22" Height="22"/>
                     </Button>
                 </Grid>
 
