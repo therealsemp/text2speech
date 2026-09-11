@@ -14,6 +14,8 @@ public class OverlayViewModel : ViewModelBase
     private TranscriptionProfile? _activeProfile;
     private AudioDevice? _selectedDevice;
     private string _errorMessage = string.Empty;
+    private bool _isSettingsOpen;
+    private bool _isHistoryOpen;
 
     public ObservableCollection<TranscriptionProfile> Profiles { get; } = [];
     public ObservableCollection<AudioDevice> AudioDevices { get; } = [];
@@ -60,6 +62,24 @@ public class OverlayViewModel : ViewModelBase
 
     public bool HasError => !string.IsNullOrEmpty(_errorMessage);
 
+    /// <summary>
+    /// Reflects whether the settings window is currently visible. Set from the View layer
+    /// whenever the window's actual visibility changes (button toggle, tray menu, or the
+    /// window's own close button), so it stays true to the window regardless of how it changed.
+    /// </summary>
+    public bool IsSettingsOpen
+    {
+        get => _isSettingsOpen;
+        internal set => SetField(ref _isSettingsOpen, value);
+    }
+
+    /// <summary>Reflects whether the history window is currently visible. See <see cref="IsSettingsOpen"/>.</summary>
+    public bool IsHistoryOpen
+    {
+        get => _isHistoryOpen;
+        internal set => SetField(ref _isHistoryOpen, value);
+    }
+
     public TranscriptionProfile? ActiveProfile
     {
         get => _activeProfile;
@@ -87,11 +107,11 @@ public class OverlayViewModel : ViewModelBase
     public RelayCommand CloseCommand { get; }
     public RelayCommand DismissErrorCommand { get; }
 
-    /// <summary>Raised when the user requests to open the settings window.</summary>
-    public event Action? OpenSettingsRequested;
+    /// <summary>Raised when the user toggles the settings window; carries the requested visibility.</summary>
+    public event Action<bool>? SettingsVisibilityRequested;
 
-    /// <summary>Raised when the user requests to open the transcription history window.</summary>
-    public event Action? OpenHistoryRequested;
+    /// <summary>Raised when the user toggles the history window; carries the requested visibility.</summary>
+    public event Action<bool>? HistoryVisibilityRequested;
 
     /// <summary>Raised when the user clicks the minimize button — the window should hide to tray.</summary>
     public event Action? MinimizeToTrayRequested;
@@ -121,8 +141,8 @@ public class OverlayViewModel : ViewModelBase
             canExecute: () => _orchestrator.State != RecordingState.Transcribing);
 
         MinimizeCommand     = new RelayCommand(() => MinimizeToTrayRequested?.Invoke());
-        OpenSettingsCommand = new RelayCommand(() => OpenSettingsRequested?.Invoke());
-        OpenHistoryCommand  = new RelayCommand(() => OpenHistoryRequested?.Invoke());
+        OpenSettingsCommand = new RelayCommand(() => SettingsVisibilityRequested?.Invoke(!IsSettingsOpen));
+        OpenHistoryCommand  = new RelayCommand(() => HistoryVisibilityRequested?.Invoke(!IsHistoryOpen));
         CloseCommand        = new RelayCommand(() => System.Windows.Application.Current.Shutdown());
         DismissErrorCommand = new RelayCommand(() => ErrorMessage = string.Empty);
 

@@ -176,18 +176,36 @@
                     <!-- Settings icon button -->
                     <Button Grid.Column="6"
                             VerticalAlignment="Center"
-                            Style="{StaticResource MaterialDesignIconButton}"
                             Command="{Binding OpenSettingsCommand}"
                             ToolTip="Settings">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSettingsOpen}" Value="True">
+                                        <Setter Property="Background" Value="#2196F3"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource MaterialDesignPaper}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <materialDesign:PackIcon Kind="Cog" Width="22" Height="22"/>
                     </Button>
 
                     <!-- History icon button -->
                     <Button Grid.Column="8"
                             VerticalAlignment="Center"
-                            Style="{StaticResource MaterialDesignIconButton}"
                             Command="{Binding OpenHistoryCommand}"
                             ToolTip="History">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsHistoryOpen}" Value="True">
+                                        <Setter Property="Background" Value="#2196F3"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource MaterialDesignPaper}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <materialDesign:PackIcon Kind="History" Width="22" Height="22"/>
                     </Button>
                 </Grid>

@@ -59,11 +59,22 @@ public partial class App : System.Windows.Application
         overlayVm.MinimizeToTrayRequested += () => overlay.Hide();
         overlayVm.ShowOverlayRequested    += () => { overlay.ShowActivated = false; overlay.Show(); overlay.ShowActivated = true; };
 
-        // Open settings window on request from overlay
-        overlayVm.OpenSettingsRequested += () => settings.Show();
+        // Toggle settings/history windows from the overlay buttons, keeping the overlay's
+        // IsSettingsOpen/IsHistoryOpen in sync with the windows' actual visibility no matter
+        // how it changes (button, tray menu, or the window's own close button).
+        overlayVm.SettingsVisibilityRequested += show =>
+        {
+            if (show) { settings.Show(); settings.Activate(); }
+            else settings.Hide();
+        };
+        settings.IsVisibleChanged += (_, _) => overlayVm.IsSettingsOpen = settings.IsVisible;
 
-        // Open history window on request from overlay
-        overlayVm.OpenHistoryRequested += () => { history.Show(); history.Activate(); };
+        overlayVm.HistoryVisibilityRequested += show =>
+        {
+            if (show) { history.Show(); history.Activate(); }
+            else history.Hide();
+        };
+        history.IsVisibleChanged += (_, _) => overlayVm.IsHistoryOpen = history.IsVisible;
 
         // Re-register hotkey when settings are saved
         settingsVm.SettingsSaved += newSettings =>
