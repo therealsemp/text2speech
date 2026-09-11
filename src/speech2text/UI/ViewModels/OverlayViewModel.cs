@@ -83,11 +83,15 @@ public class OverlayViewModel : ViewModelBase
     public RelayCommand ToggleRecordingCommand { get; }
     public RelayCommand MinimizeCommand { get; }
     public RelayCommand OpenSettingsCommand { get; }
+    public RelayCommand OpenHistoryCommand { get; }
     public RelayCommand CloseCommand { get; }
     public RelayCommand DismissErrorCommand { get; }
 
     /// <summary>Raised when the user requests to open the settings window.</summary>
     public event Action? OpenSettingsRequested;
+
+    /// <summary>Raised when the user requests to open the transcription history window.</summary>
+    public event Action? OpenHistoryRequested;
 
     /// <summary>Raised when the user clicks the minimize button — the window should hide to tray.</summary>
     public event Action? MinimizeToTrayRequested;
@@ -118,6 +122,7 @@ public class OverlayViewModel : ViewModelBase
 
         MinimizeCommand     = new RelayCommand(() => MinimizeToTrayRequested?.Invoke());
         OpenSettingsCommand = new RelayCommand(() => OpenSettingsRequested?.Invoke());
+        OpenHistoryCommand  = new RelayCommand(() => OpenHistoryRequested?.Invoke());
         CloseCommand        = new RelayCommand(() => System.Windows.Application.Current.Shutdown());
         DismissErrorCommand = new RelayCommand(() => ErrorMessage = string.Empty);
 

@@ -1,0 +1,112 @@
+<Window x:Class="speech2text.UI.Views.HistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="History"
+        Icon="pack://application:,,,/speech2text;component/Resources/icon.png"
+        Width="460" Height="520"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Border CornerRadius="10" ClipToBounds="True"
+            Background="{DynamicResource MaterialDesignPaper}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="6" Direction="270" Opacity="0.5" Color="Black"/>
+        </Border.Effect>
+
+        <DockPanel>
+
+            <!-- ── Title bar (draggable) ── -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource PrimaryHueDarkBrush}"
+                    Cursor="SizeAll">
+                <Grid Height="34" Margin="12,0,4,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="History"
+                               Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}"
+                               FontWeight="Medium" FontSize="12"
+                               VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="1"
+                            Click="CloseButton_Click"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}"
+                            Width="30" Height="34" Padding="0">
+                        <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- ── Content ── -->
+            <Grid Margin="16,14,16,14">
+
+                <!-- Placeholder when there is no history yet -->
+                <TextBlock Text="No transcription yet"
+                           Opacity="0.35" FontStyle="Italic"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasEntries}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HasEntries, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding Entries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="6" Padding="10,8" Margin="0,0,0,8"
+                                        Background="{DynamicResource MaterialDesignChipBackground}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding OccurredAt, StringFormat='{}{0:g}'}"
+                                                       Opacity="0.45" FontSize="10" Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding Text}"
+                                                       TextWrapping="Wrap" FontSize="12"/>
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1"
+                                                Command="{Binding CopyCommand}"
+                                                Style="{StaticResource MaterialDesignIconButton}"
+                                                Width="28" Height="28" Padding="0"
+                                                VerticalAlignment="Top"
+                                                Margin="6,0,0,0"
+                                                ToolTip="Copy to clipboard">
+                                            <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+        </DockPanel>
+    </Border>
+</Window>

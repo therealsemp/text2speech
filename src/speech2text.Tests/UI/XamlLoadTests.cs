@@ -45,10 +45,21 @@ public class XamlLoadTests : IClassFixture<WpfApplicationFixture>
             new Mock<IAudioCapture>().Object,
             new Mock<ITranscriptionBackendFactory>().Object,
             new Mock<ITextOutputFactory>().Object,
-            repo.Object);
+            repo.Object,
+            new Mock<ITranscriptionHistoryRepository>().Object);
 
         var vm = new OverlayViewModel(orchestrator, repo.Object, deviceEnumerator.Object);
         _ = new OverlayWindow(vm);
+    }
+
+    [StaFact]
+    public void HistoryWindow_XamlLoads()
+    {
+        var historyRepository = new Mock<ITranscriptionHistoryRepository>();
+        historyRepository.Setup(x => x.GetAll()).Returns([]);
+
+        var vm = new HistoryViewModel(historyRepository.Object);
+        _ = new HistoryWindow(vm);
     }
 }
 

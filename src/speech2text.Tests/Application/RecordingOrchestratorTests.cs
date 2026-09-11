@@ -13,6 +13,7 @@ public class RecordingOrchestratorTests
     private readonly Mock<ITextOutput> _textOutput = new();
     private readonly Mock<ITextOutputFactory> _textOutputFactory = new();
     private readonly Mock<ISettingsRepository> _settingsRepository = new();
+    private readonly Mock<ITranscriptionHistoryRepository> _historyRepository = new();
     private readonly RecordingOrchestrator _orchestrator;
 
     private static readonly byte[] SampleAudio = [1, 2, 3];
@@ -32,7 +33,8 @@ public class RecordingOrchestratorTests
             _audioCapture.Object,
             _backendFactory.Object,
             _textOutputFactory.Object,
-            _settingsRepository.Object);
+            _settingsRepository.Object,
+            _historyRepository.Object);
     }
 
     // --- Flux normal ---
@@ -47,7 +49,7 @@ public class RecordingOrchestratorTests
         audioTcs.SetResult(SampleAudio);
         await sessionTask;
 
-        _textOutput.Verify(x => x.InjectText("transcribed text"), Times.Once);
+        _textOutput.Verify(x => x.InjectTextAsync("transcribed text"), Times.Once);
         Assert.Equal(RecordingState.Idle, _orchestrator.State);
     }
 
@@ -63,6 +65,27 @@ public class RecordingOrchestratorTests
 
         audioTcs.SetResult(SampleAudio);
         await sessionTask;
+    }
+
+    [Fact]
+    public async Task NormalFlow_AddsTranscriptionToHistory_BeforeInjectingText()
+    {
+        var audioTcs = new TaskCompletionSource<byte[]>();
+        _audioCapture.Setup(x => x.RecordAsync(It.IsAny<CancellationToken>())).Returns(audioTcs.Task);
+
+        var callOrder = new List<string>();
+        _historyRepository.Setup(x => x.Add(It.IsAny<TranscriptionHistoryEntry>()))
+            .Callback(() => callOrder.Add("history"));
+        _textOutput.Setup(x => x.InjectTextAsync(It.IsAny<string>()))
+            .Callback(() => callOrder.Add("inject"))
+            .Returns(Task.CompletedTask);
+
+        var sessionTask = _orchestrator.StartRecordingAsync();
+        audioTcs.SetResult(SampleAudio);
+        await sessionTask;
+
+        _historyRepository.Verify(x => x.Add(It.Is<TranscriptionHistoryEntry>(e => e.Text == "transcribed text")), Times.Once);
+        Assert.Equal(["history", "inject"], callOrder);
     }
 
     [Fact]
@@ -95,7 +118,7 @@ public class RecordingOrchestratorTests
         await sessionTask;
 
         _backend.Verify(x => x.TranscribeAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-        _textOutput.Verify(x => x.InjectText(It.IsAny<string>()), Times.Never);
+        _textOutput.Verify(x => x.InjectTextAsync(It.IsAny<string>()), Times.Never);
         Assert.Equal(RecordingState.Idle, _orchestrator.State);
     }
 
@@ -128,7 +151,22 @@ public class RecordingOrchestratorTests
         audioTcs.SetResult(SampleAudio);
         await sessionTask;
 
-        _textOutput.Verify(x => x.InjectText(It.IsAny<string>()), Times.Never);
+        _textOutput.Verify(x => x.InjectTextAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task TranscriptionError_DoesNotAddToHistory()
+    {
+        var audioTcs = new TaskCompletionSource<byte[]>();
+        _audioCapture.Setup(x => x.RecordAsync(It.IsAny<CancellationToken>())).Returns(audioTcs.Task);
+        _backend.Setup(x => x.TranscribeAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Network error"));
+
+        var sessionTask = _orchestrator.StartRecordingAsync();
+        audioTcs.SetResult(SampleAudio);
+        await sessionTask;
+
+        _historyRepository.Verify(x => x.Add(It.IsAny<TranscriptionHistoryEntry>()), Times.Never);
     }
 
     [Fact]
@@ -165,7 +203,8 @@ public class RecordingOrchestratorTests
             audioCapture.Object,
             new Mock<ITranscriptionBackendFactory>().Object,
             new Mock<ITextOutputFactory>().Object,
-            settingsRepo.Object);
+            settingsRepo.Object,
+            new Mock<ITranscriptionHistoryRepository>().Object);
 
         string? capturedError = null;
         orchestrator.ErrorOccurred += msg => capturedError = msg;
@@ -205,7 +244,8 @@ public class RecordingOrchestratorTests
             audioCapture.Object,
             backendFactory.Object,
             new Mock<ITextOutputFactory>().Object,
-            settingsRepo.Object);
+            settingsRepo.Object,
+            new Mock<ITranscriptionHistoryRepository>().Object);
 
         await orchestrator.StartRecordingAsync();
 
@@ -310,7 +350,8 @@ public class RecordingOrchestratorTests
             audioCapture.Object,
             backendFactory.Object,
             textOutputFactory.Object,
-            settingsRepo.Object);
+            settingsRepo.Object,
+            new Mock<ITranscriptionHistoryRepository>().Object);
 
         await orchestrator.StartRecordingAsync();
 

@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using MessageBox = System.Windows.MessageBox;
 using speech2text.Adapters.Audio;
+using speech2text.Adapters.History;
 using speech2text.Adapters.Hotkey;
 using speech2text.Adapters.Settings;
 using speech2text.Adapters.TextOutput;
@@ -28,6 +29,7 @@ public partial class App : System.Windows.Application
 
         var overlay    = _services.GetRequiredService<OverlayWindow>();
         var settings   = _services.GetRequiredService<SettingsWindow>();
+        var history    = _services.GetRequiredService<HistoryWindow>();
         var orchestrator = _services.GetRequiredService<RecordingOrchestrator>();
         var hotkey     = _services.GetRequiredService<IHotkeyRegistration>();
         var settingsVm = _services.GetRequiredService<SettingsViewModel>();
@@ -40,6 +42,7 @@ public partial class App : System.Windows.Application
         var contextMenu = new ContextMenuStrip();
         contextMenu.Items.Add("Open Overlay",  null, (_, _) => { overlay.Show();  overlay.Activate(); });
         contextMenu.Items.Add("Open Settings", null, (_, _) => { settings.Show(); settings.Activate(); });
+        contextMenu.Items.Add("Open History",  null, (_, _) => { history.Show();  history.Activate(); });
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Exit", null, (_, _) => System.Windows.Application.Current.Shutdown());
 
@@ -58,6 +61,9 @@ public partial class App : System.Windows.Application
 
         // Open settings window on request from overlay
         overlayVm.OpenSettingsRequested += () => settings.Show();
+
+        // Open history window on request from overlay
+        overlayVm.OpenHistoryRequested += () => { history.Show(); history.Activate(); };
 
         // Re-register hotkey when settings are saved
         settingsVm.SettingsSaved += newSettings =>
@@ -108,6 +114,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ITextOutputFactory,     TextOutputFactory>();
         services.AddSingleton<ISettingsRepository,    JsonSettingsRepository>();
         services.AddSingleton<IHotkeyRegistration,    NHotkeyAdapter>();
+        services.AddSingleton<ITranscriptionHistoryRepository, InMemoryTranscriptionHistoryRepository>();
 
         // Application
         services.AddSingleton<RecordingOrchestrator>();
@@ -115,8 +122,10 @@ public partial class App : System.Windows.Application
         // UI
         services.AddSingleton<OverlayViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<HistoryViewModel>();
         services.AddSingleton<OverlayWindow>();
         services.AddSingleton<SettingsWindow>();
+        services.AddSingleton<HistoryWindow>();
 
         return services.BuildServiceProvider();
     }

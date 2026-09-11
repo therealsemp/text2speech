@@ -7,7 +7,8 @@ public class RecordingOrchestrator(
     IAudioCapture audioCapture,
     ITranscriptionBackendFactory backendFactory,
     ITextOutputFactory textOutputFactory,
-    ISettingsRepository settingsRepository)
+    ISettingsRepository settingsRepository,
+    ITranscriptionHistoryRepository historyRepository)
 {
     private readonly RecordingSession _session = new();
     private CancellationTokenSource? _cts;
@@ -83,7 +84,11 @@ public class RecordingOrchestrator(
         {
             var backend = backendFactory.Create(profile);
             var text = await backend.TranscribeAsync(audio, profile.Language, CancellationToken.None);
-            textOutputFactory.Create(settings.TextInsertionMode).InjectText(text);
+
+            if (!string.IsNullOrWhiteSpace(text))
+                historyRepository.Add(new TranscriptionHistoryEntry(text, DateTimeOffset.UtcNow));
+
+            await textOutputFactory.Create(settings.TextInsertionMode).InjectTextAsync(text);
             _session.CompleteTranscription(text);
         }
         catch (Exception ex)

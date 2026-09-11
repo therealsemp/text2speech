@@ -65,7 +65,13 @@ public interface IAudioCapture
 
 public interface ITextOutput
 {
-    void InjectText(string text);
+    Task InjectTextAsync(string text);
+}
+
+public interface ITranscriptionHistoryRepository
+{
+    void Add(TranscriptionHistoryEntry entry);
+    IReadOnlyList<TranscriptionHistoryEntry> GetAll(); // most recent first
 }
 
 public interface ITextOutputFactory
@@ -140,8 +146,12 @@ public class TextOutputFactory : ITextOutputFactory
 }
 ```
 
-Note: `ClipboardPasteTextAdapter` does not restore the previous clipboard content after pasting —
-the transcribed text is left on the clipboard (deliberate simplicity trade-off).
+Note: `ClipboardPasteTextAdapter` snapshots the clipboard before pasting and restores it ~250ms
+later, unconditionally — whether or not the paste actually landed in a text field (the target
+window/field may have lost focus in the meantime). Detecting paste success reliably is not
+possible in general on Windows, so instead of trying, every transcription result is recorded in
+`ITranscriptionHistoryRepository` before injection is attempted, so it can be recovered from the
+History window regardless of whether the paste succeeded.
 
 ---
 

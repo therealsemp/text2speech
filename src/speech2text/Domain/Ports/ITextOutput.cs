@@ -7,5 +7,5 @@ namespace speech2text.Domain.Ports;
 /// </summary>
 public interface ITextOutput
 {
-    void InjectText(string text);
+    Task InjectTextAsync(string text);
 }

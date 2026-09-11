@@ -28,6 +28,7 @@ public class OverlayViewModelTests
     private readonly Mock<ITextOutputFactory> _textOutputFactory = new();
     private readonly Mock<ISettingsRepository> _settingsRepository = new();
     private readonly Mock<IAudioDeviceEnumerator> _deviceEnumerator = new();
+    private readonly Mock<ITranscriptionHistoryRepository> _historyRepository = new();
     private readonly RecordingOrchestrator _orchestrator;
     private readonly TestableOverlayViewModel _vm;
 
@@ -45,7 +46,8 @@ public class OverlayViewModelTests
             _audioCapture.Object,
             _backendFactory.Object,
             _textOutputFactory.Object,
-            _settingsRepository.Object);
+            _settingsRepository.Object,
+            _historyRepository.Object);
 
         _vm = new TestableOverlayViewModel(_orchestrator, _settingsRepository.Object, _deviceEnumerator.Object);
     }

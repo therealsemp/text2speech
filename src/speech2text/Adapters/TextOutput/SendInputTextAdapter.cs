@@ -13,8 +13,9 @@ public class SendInputTextAdapter : ITextOutput
 {
     private readonly InputSimulator _simulator = new();
 
-    public void InjectText(string text)
+    public Task InjectTextAsync(string text)
     {
         _simulator.Keyboard.TextEntry(text);
+        return Task.CompletedTask;
     }
 }
